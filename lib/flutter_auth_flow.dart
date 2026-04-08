@@ -17,4 +17,10 @@ library flutter_auth_flow;
 
 export 'src/auth_flow_widget.dart' show AuthFlow;
 export 'src/auth_flow_theme.dart' show AuthFlowTheme;
-export 'src/auth_mode.dart' show AuthMode;
+export 'src/auth_mode.dart' show AuthMode, AuthFlowType;
+export 'src/demo_auth_service.dart'
+    show
+        DemoAuthService,
+        DemoAuthServiceProvider,
+        DemoAuthResult,
+        DemoAuthException;

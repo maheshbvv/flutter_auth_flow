@@ -9,6 +9,7 @@ class AuthFormSignIn extends StatefulWidget {
     super.key,
     required this.onSubmit,
     required this.onSwitchMode,
+    required this.authFlowType,
     this.isLoading = false,
     this.theme,
     this.submitButtonBuilder,
@@ -17,6 +18,7 @@ class AuthFormSignIn extends StatefulWidget {
 
   final Future<void> Function(String email, String password) onSubmit;
   final void Function(AuthMode) onSwitchMode;
+  final AuthFlowType authFlowType;
   final bool isLoading;
   final AuthFlowTheme? theme;
   final Widget Function(BuildContext, VoidCallback onTap, bool isLoading)?
@@ -102,29 +104,31 @@ class _AuthFormSignInState extends State<AuthFormSignIn> {
             ),
             const SizedBox(height: 8),
 
-            // Forgot password link
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => widget.onSwitchMode(AuthMode.forgotPassword),
-                style: TextButton.styleFrom(
-                  foregroundColor: primaryColor,
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 36),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Forgot password?',
-                  style: afTheme?.linkStyle ??
-                      TextStyle(fontSize: 13, color: primaryColor),
+            // Forgot password link (only show if enabled)
+            if (widget.authFlowType.hasMode(AuthMode.forgotPassword))
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => widget.onSwitchMode(AuthMode.forgotPassword),
+                  style: TextButton.styleFrom(
+                    foregroundColor: primaryColor,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 36),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Forgot password?',
+                    style: afTheme?.linkStyle ??
+                        TextStyle(fontSize: 13, color: primaryColor),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 20),
 
             // Submit button
             widget.submitButtonBuilder != null
-                ? widget.submitButtonBuilder!(context, _submit, widget.isLoading)
+                ? widget.submitButtonBuilder!(
+                    context, _submit, widget.isLoading)
                 : _DefaultSubmitButton(
                     label: 'Sign In',
                     isLoading: widget.isLoading,
@@ -134,17 +138,18 @@ class _AuthFormSignInState extends State<AuthFormSignIn> {
                   ),
             const SizedBox(height: 24),
 
-            // Mode switcher
-            widget.modeSwitcherBuilder != null
-                ? widget.modeSwitcherBuilder!(
-                    context, AuthMode.signIn, widget.onSwitchMode)
-                : _DefaultModeSwitcher(
-                    prompt: "Don't have an account?",
-                    actionLabel: 'Sign up',
-                    onTap: () => widget.onSwitchMode(AuthMode.signUp),
-                    primaryColor: primaryColor,
-                    theme: afTheme,
-                  ),
+            // Mode switcher (only show if sign up is enabled)
+            if (widget.authFlowType.hasMode(AuthMode.signUp))
+              widget.modeSwitcherBuilder != null
+                  ? widget.modeSwitcherBuilder!(
+                      context, AuthMode.signIn, widget.onSwitchMode)
+                  : _DefaultModeSwitcher(
+                      prompt: "Don't have an account?",
+                      actionLabel: 'Sign up',
+                      onTap: () => widget.onSwitchMode(AuthMode.signUp),
+                      primaryColor: primaryColor,
+                      theme: afTheme,
+                    ),
           ],
         ),
       ),
@@ -160,6 +165,7 @@ class AuthFormSignUp extends StatefulWidget {
     super.key,
     required this.onSubmit,
     required this.onSwitchMode,
+    required this.authFlowType,
     this.isLoading = false,
     this.theme,
     this.submitButtonBuilder,
@@ -169,6 +175,7 @@ class AuthFormSignUp extends StatefulWidget {
   final Future<void> Function(String email, String password, String name)
       onSubmit;
   final void Function(AuthMode) onSwitchMode;
+  final AuthFlowType authFlowType;
   final bool isLoading;
   final AuthFlowTheme? theme;
   final Widget Function(BuildContext, VoidCallback onTap, bool isLoading)?
@@ -297,9 +304,9 @@ class _AuthFormSignUpState extends State<AuthFormSignUp> {
               },
             ),
             const SizedBox(height: 24),
-
             widget.submitButtonBuilder != null
-                ? widget.submitButtonBuilder!(context, _submit, widget.isLoading)
+                ? widget.submitButtonBuilder!(
+                    context, _submit, widget.isLoading)
                 : _DefaultSubmitButton(
                     label: 'Create Account',
                     isLoading: widget.isLoading,
@@ -309,16 +316,18 @@ class _AuthFormSignUpState extends State<AuthFormSignUp> {
                   ),
             const SizedBox(height: 24),
 
-            widget.modeSwitcherBuilder != null
-                ? widget.modeSwitcherBuilder!(
-                    context, AuthMode.signUp, widget.onSwitchMode)
-                : _DefaultModeSwitcher(
-                    prompt: 'Already have an account?',
-                    actionLabel: 'Sign in',
-                    onTap: () => widget.onSwitchMode(AuthMode.signIn),
-                    primaryColor: primaryColor,
-                    theme: afTheme,
-                  ),
+            // Mode switcher (only show if sign in is enabled)
+            if (widget.authFlowType.hasMode(AuthMode.signIn))
+              widget.modeSwitcherBuilder != null
+                  ? widget.modeSwitcherBuilder!(
+                      context, AuthMode.signUp, widget.onSwitchMode)
+                  : _DefaultModeSwitcher(
+                      prompt: 'Already have an account?',
+                      actionLabel: 'Sign in',
+                      onTap: () => widget.onSwitchMode(AuthMode.signIn),
+                      primaryColor: primaryColor,
+                      theme: afTheme,
+                    ),
           ],
         ),
       ),
@@ -334,6 +343,7 @@ class AuthFormForgotPassword extends StatefulWidget {
     super.key,
     required this.onSubmit,
     required this.onSwitchMode,
+    required this.authFlowType,
     this.isLoading = false,
     this.theme,
     this.submitButtonBuilder,
@@ -342,6 +352,7 @@ class AuthFormForgotPassword extends StatefulWidget {
 
   final Future<void> Function(String email) onSubmit;
   final void Function(AuthMode) onSwitchMode;
+  final AuthFlowType authFlowType;
   final bool isLoading;
   final AuthFlowTheme? theme;
   final Widget Function(BuildContext, VoidCallback onTap, bool isLoading)?
@@ -351,8 +362,7 @@ class AuthFormForgotPassword extends StatefulWidget {
       modeSwitcherBuilder;
 
   @override
-  State<AuthFormForgotPassword> createState() =>
-      _AuthFormForgotPasswordState();
+  State<AuthFormForgotPassword> createState() => _AuthFormForgotPasswordState();
 }
 
 class _AuthFormForgotPasswordState extends State<AuthFormForgotPassword> {
@@ -401,9 +411,9 @@ class _AuthFormForgotPasswordState extends State<AuthFormForgotPassword> {
               },
             ),
             const SizedBox(height: 24),
-
             widget.submitButtonBuilder != null
-                ? widget.submitButtonBuilder!(context, _submit, widget.isLoading)
+                ? widget.submitButtonBuilder!(
+                    context, _submit, widget.isLoading)
                 : _DefaultSubmitButton(
                     label: 'Send Reset Link',
                     isLoading: widget.isLoading,
@@ -413,16 +423,18 @@ class _AuthFormForgotPasswordState extends State<AuthFormForgotPassword> {
                   ),
             const SizedBox(height: 24),
 
-            widget.modeSwitcherBuilder != null
-                ? widget.modeSwitcherBuilder!(
-                    context, AuthMode.forgotPassword, widget.onSwitchMode)
-                : _DefaultModeSwitcher(
-                    prompt: 'Remembered it?',
-                    actionLabel: 'Back to sign in',
-                    onTap: () => widget.onSwitchMode(AuthMode.signIn),
-                    primaryColor: primaryColor,
-                    theme: afTheme,
-                  ),
+            // Mode switcher (only show if sign in is enabled)
+            if (widget.authFlowType.hasMode(AuthMode.signIn))
+              widget.modeSwitcherBuilder != null
+                  ? widget.modeSwitcherBuilder!(
+                      context, AuthMode.forgotPassword, widget.onSwitchMode)
+                  : _DefaultModeSwitcher(
+                      prompt: 'Remember your password?',
+                      actionLabel: 'Sign in',
+                      onTap: () => widget.onSwitchMode(AuthMode.signIn),
+                      primaryColor: primaryColor,
+                      theme: afTheme,
+                    ),
           ],
         ),
       ),
@@ -430,6 +442,7 @@ class _AuthFormForgotPasswordState extends State<AuthFormForgotPassword> {
   }
 }
 
+// ─── Default Submit Button ─────────────────────────────────────────────────────
 // ─── Shared internal widgets ──────────────────────────────────────────────────
 
 class _DefaultSubmitButton extends StatelessWidget {

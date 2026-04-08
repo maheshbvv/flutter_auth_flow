@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_auth_flow/flutter_auth_flow.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() => runApp(const ExampleApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const ExampleApp());
+}
 
 class ExampleApp extends StatelessWidget {
   const ExampleApp({super.key});
@@ -9,7 +15,7 @@ class ExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AuthFlow Example',
+      title: 'AuthFlow Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -20,79 +26,85 @@ class ExampleApp extends StatelessWidget {
   }
 }
 
-class AuthScreen extends StatelessWidget {
+class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
+
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: AuthFlow(
-                // ── Callbacks ───────────────────────────────────────────
                 onSignIn: (email, password) async {
-                  // Simulate a network call
-                  await Future.delayed(const Duration(seconds: 2));
-                  // Throw to simulate an auth error:
-                  // throw Exception('Invalid email or password');
-                  debugPrint('Signed in: $email');
+                  await FirebaseAuth.instance.signInWithEmailAndPassword(
+                    email: email,
+                    password: password,
+                  );
                 },
                 onSignUp: (email, password, name) async {
-                  await Future.delayed(const Duration(seconds: 2));
-                  debugPrint('Signed up: $name <$email>');
+                  final cred = await FirebaseAuth.instance
+                      .createUserWithEmailAndPassword(
+                    email: email,
+                    password: password,
+                  );
+                  if (name.isNotEmpty) {
+                    await cred.user?.updateDisplayName(name);
+                  }
                 },
                 onForgotPassword: (email) async {
-                  await Future.delayed(const Duration(seconds: 1));
-                  debugPrint('Reset link sent to: $email');
+                  await FirebaseAuth.instance
+                      .sendPasswordResetEmail(email: email);
                 },
-
-                // ── Optional: start on a specific mode ──────────────────
-                initialMode: AuthMode.signIn,
-
-                // ── Optional: custom theme ───────────────────────────────
-                // theme: AuthFlowTheme(
-                //   primaryColor: Colors.indigo,
-                //   inputBorderRadius: BorderRadius.circular(8),
-                //   buttonBorderRadius: BorderRadius.circular(8),
-                // ),
-
-                // ── Optional: custom header with logo ────────────────────
-                // headerBuilder: (ctx, mode) => Column(
-                //   crossAxisAlignment: CrossAxisAlignment.start,
-                //   children: [
-                //     FlutterLogo(size: 48),
-                //     SizedBox(height: 20),
-                //     Text(
-                //       mode == AuthMode.signIn ? 'Welcome back' : 'Join us',
-                //       style: Theme.of(ctx).textTheme.headlineSmall,
-                //     ),
-                //   ],
-                // ),
-
-                // ── Optional: footer for Terms / Privacy links ────────────
-                footerBuilder: (ctx, mode) => Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'By continuing you agree to our Terms of Service.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(ctx)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.4),
+                onSignInSuccess: _navigateToHome,
+                onSignUpSuccess: _navigateToHome,
+                onForgotPasswordSuccess: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password reset email sent!'),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => FirebaseAuth.instance.signOut(),
+          ),
+        ],
+      ),
+      body: const Center(
+        child: Text('Welcome! You are signed in.'),
       ),
     );
   }
