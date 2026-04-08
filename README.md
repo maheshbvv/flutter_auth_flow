@@ -25,7 +25,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_auth_flow: ^0.0.3
+  flutter_auth_flow: ^0.0.4
 ```
 
 ---
