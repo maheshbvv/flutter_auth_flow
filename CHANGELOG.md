@@ -1,3 +1,8 @@
+## 0.0.6
+
+* Added `themeMode` property to `AuthFlowTheme` for automatic dark/light mode detection based on system settings
+* Supports `ThemeMode.system` (default), `ThemeMode.light`, and `ThemeMode.dark`
+
 ## 0.0.5
 
 * Added `DemoAuthService` for testing and development

@@ -296,74 +296,99 @@ class _AuthFlowState extends State<AuthFlow> {
     );
   }
 
+  // ── Effective theme based on themeMode ─────────────────────────────────
+  ThemeData _resolveTheme(BuildContext context, ThemeData td) {
+    final themeMode = widget.theme?.themeMode ?? ThemeMode.system;
+    if (themeMode == ThemeMode.system) {
+      final brightness = MediaQuery.platformBrightnessOf(context);
+      return td.copyWith(
+        brightness: brightness,
+        colorScheme: td.colorScheme.copyWith(
+          brightness: brightness,
+        ),
+      );
+    } else if (themeMode == ThemeMode.dark) {
+      return td.copyWith(
+        brightness: Brightness.dark,
+        colorScheme: td.colorScheme.copyWith(
+          brightness: Brightness.dark,
+        ),
+      );
+    }
+    return td;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: _state,
       builder: (context, _) {
-        final td = Theme.of(context);
+        final td = _resolveTheme(context, Theme.of(context));
         final mode = _state.mode;
         final afTheme = widget.theme;
 
         final effectiveLoading = _isLoading;
         final effectiveError = _errorMessage;
 
-        return Container(
-          decoration: afTheme?.cardDecoration,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── Header ─────────────────────────────────────────────────
-              widget.headerBuilder != null
-                  ? widget.headerBuilder!(context, mode)
-                  : _defaultHeader(mode, td),
-              const SizedBox(height: 28),
+        return Theme(
+          data: td,
+          child: Container(
+            decoration: afTheme?.cardDecoration,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── Header ─────────────────────────────────────────────────
+                widget.headerBuilder != null
+                    ? widget.headerBuilder!(context, mode)
+                    : _defaultHeader(mode, td),
+                const SizedBox(height: 28),
 
-              // ── Error message ─────────────────────────────────────────
-              AnimatedSize(
-                duration: afTheme?.effectiveTransitionDuration ??
-                    const Duration(milliseconds: 320),
-                curve: afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
-                child: effectiveError != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: widget.errorBuilder != null
-                            ? widget.errorBuilder!(context, effectiveError)
-                            : _defaultError(effectiveError, td),
-                      )
-                    : const SizedBox.shrink(),
-              ),
+                // ── Error message ─────────────────────────────────────────
+                AnimatedSize(
+                  duration: afTheme?.effectiveTransitionDuration ??
+                      const Duration(milliseconds: 320),
+                  curve: afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
+                  child: effectiveError != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: widget.errorBuilder != null
+                              ? widget.errorBuilder!(context, effectiveError)
+                              : _defaultError(effectiveError, td),
+                        )
+                      : const SizedBox.shrink(),
+                ),
 
-              // ── Animated form switcher ────────────────────────────────
-              AnimatedSwitcher(
-                duration: afTheme?.effectiveTransitionDuration ??
-                    const Duration(milliseconds: 320),
-                switchInCurve:
-                    afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
-                switchOutCurve:
-                    afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.04),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
-                child: _buildForm(mode, effectiveLoading),
-              ),
+                // ── Animated form switcher ────────────────────────────────
+                AnimatedSwitcher(
+                  duration: afTheme?.effectiveTransitionDuration ??
+                      const Duration(milliseconds: 320),
+                  switchInCurve:
+                      afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
+                  switchOutCurve:
+                      afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.04),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _buildForm(mode, effectiveLoading),
+                ),
 
-              // ── Footer ────────────────────────────────────────────────
-              if (widget.footerBuilder != null) ...[
-                const SizedBox(height: 16),
-                widget.footerBuilder!(context, mode),
+                // ── Footer ────────────────────────────────────────────────
+                if (widget.footerBuilder != null) ...[
+                  const SizedBox(height: 16),
+                  widget.footerBuilder!(context, mode),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },

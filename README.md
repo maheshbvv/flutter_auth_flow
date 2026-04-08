@@ -172,20 +172,56 @@ enum AuthMode {
 
 ```dart
 AuthFlowTheme(
+  // Theme Mode
+  themeMode: ThemeMode.system, // auto-detect from system (default), light, or dark
+
+  // Colors
   primaryColor: Colors.blue,
-  borderRadius: 12.0,
-  fieldBorderRadius: 8.0,
+  backgroundColor: Colors.white,
+  inputFillColor: Colors.grey[100],
+  errorColor: Colors.red,
+
+  // Typography
   titleStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
   subtitleStyle: TextStyle(fontSize: 14, color: Colors.grey),
-  labelStyle: TextStyle(fontSize: 14),
-  hintStyle: TextStyle(fontSize: 14),
-  errorColor: Colors.red,
-  fieldSpacing: 16.0,
-  buttonHeight: 48.0,
+  inputStyle: TextStyle(fontSize: 16),
+  buttonTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  linkStyle: TextStyle(fontSize: 14),
+
+  // Shape
+  inputBorderRadius: BorderRadius.circular(12),
+  buttonBorderRadius: BorderRadius.circular(12),
+
+  // Full overrides
+  cardDecoration: BoxDecoration(...),
+  buttonStyle: ButtonStyle(...),
+  inputDecoration: InputDecoration(...),
+
+  // Animation
   transitionDuration: Duration(milliseconds: 300),
   transitionCurve: Curves.easeInOut,
-  cardDecoration: BoxDecoration(...),
-  inputDecoration: InputDecoration(...),
+)
+```
+
+#### Theme Mode
+
+The `themeMode` property controls whether the widget uses light, dark, or system theme:
+
+| Value | Description |
+|-------|-------------|
+| `ThemeMode.system` (default) | Automatically uses the device's system brightness |
+| `ThemeMode.light` | Forces light mode |
+| `ThemeMode.dark` | Forces dark mode |
+
+```dart
+// Auto-detect from system (default)
+AuthFlow(
+  theme: AuthFlowTheme(themeMode: ThemeMode.system),
+)
+
+// Force dark mode
+AuthFlow(
+  theme: AuthFlowTheme(themeMode: ThemeMode.dark),
 )
 ```
 

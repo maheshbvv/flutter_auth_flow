@@ -11,6 +11,9 @@ import 'package:flutter/material.dart';
 /// [cardDecoration] directly.
 class AuthFlowTheme {
   const AuthFlowTheme({
+    // ── Theme Mode ────────────────────────────────────────
+    this.themeMode,
+
     // ── Colors ────────────────────────────────────────────
     this.primaryColor,
     this.backgroundColor,
@@ -37,6 +40,13 @@ class AuthFlowTheme {
     this.transitionDuration,
     this.transitionCurve,
   });
+
+  // ── Theme Mode ─────────────────────────────────────────
+  /// Controls whether the widget uses light, dark, or system theme.
+  /// When set to [ThemeMode.system], the widget automatically adapts to
+  /// the system's light/dark mode setting.
+  /// Defaults to [ThemeMode.system].
+  final ThemeMode? themeMode;
 
   // ── Colors ──────────────────────────────────────────────
   /// Primary accent color — used for the submit button and links.
