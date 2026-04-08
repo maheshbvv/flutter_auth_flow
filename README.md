@@ -231,7 +231,7 @@ AuthFlow(
 
 ```yaml
 dependencies:
-  flutter_auth_flow: ^0.0.5
+  flutter_auth_flow: ^0.0.6
 ```
 
 ---
