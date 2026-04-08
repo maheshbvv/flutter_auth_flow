@@ -8,3 +8,10 @@
 * Internal loading and error state with optional external override.
 * Animated mode transitions with `AnimatedSwitcher`.
 * Built-in form validation with autofill support.
+
+# 0.0.2
+Documentation changes.
+#0.0.3
+Published to the verified publisher https://pendura.in
+#0.0.4
+No signifaicant changes in code.
