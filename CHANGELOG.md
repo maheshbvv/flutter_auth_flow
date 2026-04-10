@@ -1,3 +1,7 @@
+## 0.0.9
+
+* Updated README screenshot links to use absolute GitHub image URLs so they render on pub.dev instead of showing alt-text placeholders.
+
 ## 0.0.8
 
 * Added package screenshots metadata to `pubspec.yaml` so pub.dev can display the screenshot gallery on the package page.

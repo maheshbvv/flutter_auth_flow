@@ -24,17 +24,17 @@ Add the widget, and it just works. Use only Sign In, only Sign Up, only Forgot P
 
 | Sign In | Sign Up |
 |--------|---------|
-| ![All modes sign in](screenshots/all_signin_view.png) | ![All modes sign up](screenshots/all_signup_view.png) |
+| ![All modes sign in](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/all_signin_view.png) | ![All modes sign up](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/all_signup_view.png) |
 
 | Forgot Password | Password Strength |
 |----------------|-------------------|
-| ![All modes reset password](screenshots/all_reset_password_view.png) | ![Password strength check](screenshots/password_strength_check_view.png) |
+| ![All modes reset password](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/all_reset_password_view.png) | ![Password strength check](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/password_strength_check_view.png) |
 
 ### Single-Mode Presets
 
 | Sign In Only | Sign Up Only | Forgot Password Only |
 |-------------|--------------|----------------------|
-| ![Sign in only](screenshots/only_signin_view.png) | ![Sign up only](screenshots/only_signup_view.png) | ![Forgot password only](screenshots/only_reset_password_view.png) |
+| ![Sign in only](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/only_signin_view.png) | ![Sign up only](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/only_signup_view.png) | ![Forgot password only](https://raw.githubusercontent.com/maheshbvv/flutter_auth_flow/main/screenshots/only_reset_password_view.png) |
 
 ---
 
@@ -282,7 +282,7 @@ AuthFlow(
 
 ```yaml
 dependencies:
-  flutter_auth_flow: ^0.0.6
+  flutter_auth_flow: ^0.0.9
 ```
 
 ---
