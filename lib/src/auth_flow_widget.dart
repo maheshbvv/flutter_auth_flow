@@ -269,7 +269,7 @@ class _AuthFlowState extends State<AuthFlow> {
           subtitle,
           style: widget.theme?.subtitleStyle ??
               td.textTheme.bodyMedium?.copyWith(
-                color: td.colorScheme.onSurface.withOpacity(0.55),
+                color: td.colorScheme.onSurface.withValues(alpha: 0.55),
               ),
         ),
       ],
@@ -282,9 +282,9 @@ class _AuthFlowState extends State<AuthFlow> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: errorColor.withOpacity(0.08),
+        color: errorColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: errorColor.withOpacity(0.25)),
+        border: Border.all(color: errorColor.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [

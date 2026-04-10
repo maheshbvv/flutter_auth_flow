@@ -2,7 +2,7 @@ name: flutter_auth_flow
 description: >
   A single, fully customizable Flutter widget that handles Sign In, Sign Up,
   and Forgot Password — no routing, no multiple pages, just drop it in.
-version: 0.0.9
+version: 0.1.0
 homepage: https://github.com/maheshbvv/flutter_auth_flow
 repository: https://github.com/maheshbvv/flutter_auth_flow
 

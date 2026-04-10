@@ -1,3 +1,7 @@
+## 0.1.0
+
+* Replaced the deprecated usage of .withOpacity() with .withValues()
+
 ## 0.0.9
 
 * Updated README screenshot links to use absolute GitHub image URLs so they render on pub.dev instead of showing alt-text placeholders.
