@@ -3,6 +3,7 @@ import 'auth_flow_state.dart';
 import 'auth_flow_theme.dart';
 import 'auth_forms.dart';
 import 'auth_mode.dart';
+import 'password_policy.dart';
 
 export 'auth_mode.dart' show AuthMode, AuthFlowType;
 
@@ -112,6 +113,9 @@ class AuthFlow extends StatefulWidget {
     /// Fine-grained visual customization. See [AuthFlowTheme] for all options.
     this.theme,
 
+    /// Optional password rules and sign-up strength indicator.
+    this.passwordPolicy,
+
     // ── Builders ───────────────────────────────────────────
     /// Replaces the default title + subtitle header area.
     ///
@@ -165,6 +169,7 @@ class AuthFlow extends StatefulWidget {
 
   // ── Theme ────────────────────────────────────────────────
   final AuthFlowTheme? theme;
+  final PasswordPolicy? passwordPolicy;
 
   // ── Builders ────────────────────────────────────────────
   final Widget Function(BuildContext context, AuthMode mode)? headerBuilder;
@@ -334,60 +339,63 @@ class _AuthFlowState extends State<AuthFlow> {
           data: td,
           child: Container(
             decoration: afTheme?.cardDecoration,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ── Header ─────────────────────────────────────────────────
-                widget.headerBuilder != null
-                    ? widget.headerBuilder!(context, mode)
-                    : _defaultHeader(mode, td),
-                const SizedBox(height: 28),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ── Header ───────────────────────────────────────────────
+                  widget.headerBuilder != null
+                      ? widget.headerBuilder!(context, mode)
+                      : _defaultHeader(mode, td),
+                  const SizedBox(height: 28),
 
-                // ── Error message ─────────────────────────────────────────
-                AnimatedSize(
-                  duration: afTheme?.effectiveTransitionDuration ??
-                      const Duration(milliseconds: 320),
-                  curve: afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
-                  child: effectiveError != null
-                      ? Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: widget.errorBuilder != null
-                              ? widget.errorBuilder!(context, effectiveError)
-                              : _defaultError(effectiveError, td),
-                        )
-                      : const SizedBox.shrink(),
-                ),
+                  // ── Error message ───────────────────────────────────────
+                  AnimatedSize(
+                    duration: afTheme?.effectiveTransitionDuration ??
+                        const Duration(milliseconds: 320),
+                    curve:
+                        afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
+                    child: effectiveError != null
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: widget.errorBuilder != null
+                                ? widget.errorBuilder!(context, effectiveError)
+                                : _defaultError(effectiveError, td),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
 
-                // ── Animated form switcher ────────────────────────────────
-                AnimatedSwitcher(
-                  duration: afTheme?.effectiveTransitionDuration ??
-                      const Duration(milliseconds: 320),
-                  switchInCurve:
-                      afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
-                  switchOutCurve:
-                      afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.04),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: _buildForm(mode, effectiveLoading),
-                ),
+                  // ── Animated form switcher ──────────────────────────────
+                  AnimatedSwitcher(
+                    duration: afTheme?.effectiveTransitionDuration ??
+                        const Duration(milliseconds: 320),
+                    switchInCurve:
+                        afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
+                    switchOutCurve:
+                        afTheme?.effectiveTransitionCurve ?? Curves.easeInOut,
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.04),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _buildForm(mode, effectiveLoading),
+                  ),
 
-                // ── Footer ────────────────────────────────────────────────
-                if (widget.footerBuilder != null) ...[
-                  const SizedBox(height: 16),
-                  widget.footerBuilder!(context, mode),
+                  // ── Footer ──────────────────────────────────────────────
+                  if (widget.footerBuilder != null) ...[
+                    const SizedBox(height: 16),
+                    widget.footerBuilder!(context, mode),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         );
@@ -419,6 +427,7 @@ class _AuthFlowState extends State<AuthFlow> {
           submitButtonBuilder: widget.submitButtonBuilder,
           modeSwitcherBuilder: widget.modeSwitcherBuilder,
           authFlowType: widget.authFlowType,
+          passwordPolicy: widget.passwordPolicy,
           onSubmit: (email, password, name) => _run(
             () => widget._onSignUp!(email, password, name),
             widget._onSignUpSuccess,

@@ -14,11 +14,13 @@
     },
     {
       "name": "flutter_auth_flow",
-      "version": "0.0.5",
+      "version": "0.0.6",
       "dependencies": [
+        "crypto",
         "firebase_auth",
         "firebase_core",
-        "flutter"
+        "flutter",
+        "http"
       ]
     },
     {
@@ -330,6 +332,23 @@
       "name": "vm_service",
       "version": "15.0.2",
       "dependencies": []
+    },
+    {
+      "name": "http",
+      "version": "1.6.0",
+      "dependencies": [
+        "async",
+        "http_parser",
+        "meta",
+        "web"
+      ]
+    },
+    {
+      "name": "crypto",
+      "version": "3.0.7",
+      "dependencies": [
+        "typed_data"
+      ]
     }
   ],
   "configVersion": 1

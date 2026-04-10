@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'auth_flow_fields.dart';
 import 'auth_flow_theme.dart';
 import 'auth_mode.dart';
+import 'password_policy.dart';
+import 'password_strength.dart';
+import 'pwned_password_checker.dart';
 
 /// The sign-in form rendered inside [AuthFlow] when mode is [AuthMode.signIn].
 class AuthFormSignIn extends StatefulWidget {
@@ -168,6 +171,7 @@ class AuthFormSignUp extends StatefulWidget {
     required this.authFlowType,
     this.isLoading = false,
     this.theme,
+    this.passwordPolicy,
     this.submitButtonBuilder,
     this.modeSwitcherBuilder,
   });
@@ -178,6 +182,7 @@ class AuthFormSignUp extends StatefulWidget {
   final AuthFlowType authFlowType;
   final bool isLoading;
   final AuthFlowTheme? theme;
+  final PasswordPolicy? passwordPolicy;
   final Widget Function(BuildContext, VoidCallback onTap, bool isLoading)?
       submitButtonBuilder;
   final Widget Function(
@@ -194,11 +199,46 @@ class _AuthFormSignUpState extends State<AuthFormSignUp> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  late PasswordStrengthResult _strengthResult;
+  bool _isCheckingPwnedPassword = false;
+  String? _lastCheckedPassword;
+  String? _pwnedWarning;
+  PasswordBreachCheckResult? _pwnedResult;
+
+  PasswordPolicy? get _passwordPolicy => widget.passwordPolicy;
+  int get _minimumPasswordLength => _passwordPolicy?.minLength ?? 8;
+  bool get _showsStrengthIndicator =>
+      _passwordPolicy?.showStrengthIndicator ?? false;
+  bool get _checksPwnedPasswords => _passwordPolicy?.enablePwnedCheck ?? false;
+  bool get _blocksPwnedPasswords =>
+      _passwordPolicy?.blockPwnedPasswords ?? true;
+
+  @override
+  void initState() {
+    super.initState();
+    _strengthResult = evaluatePasswordStrength(
+      password: '',
+      email: '',
+      name: '',
+      minLength: _minimumPasswordLength,
+    );
+    _nameCtrl.addListener(_handleStrengthContextChanged);
+    _emailCtrl.addListener(_handleStrengthContextChanged);
+    _passwordCtrl.addListener(_handlePasswordChanged);
+    _passwordFocusNode.addListener(_handlePasswordFocusChanged);
+  }
 
   @override
   void dispose() {
+    _passwordFocusNode
+      ..removeListener(_handlePasswordFocusChanged)
+      ..dispose();
+    _nameCtrl.removeListener(_handleStrengthContextChanged);
+    _emailCtrl.removeListener(_handleStrengthContextChanged);
+    _passwordCtrl.removeListener(_handlePasswordChanged);
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
@@ -206,11 +246,142 @@ class _AuthFormSignUpState extends State<AuthFormSignUp> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      widget.onSubmit(
-          _emailCtrl.text.trim(), _passwordCtrl.text, _nameCtrl.text.trim());
+  @override
+  void didUpdateWidget(covariant AuthFormSignUp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.passwordPolicy != widget.passwordPolicy) {
+      _strengthResult = evaluatePasswordStrength(
+        password: _passwordCtrl.text,
+        email: _emailCtrl.text.trim(),
+        name: _nameCtrl.text.trim(),
+        minLength: _minimumPasswordLength,
+      );
+      _clearPwnedState();
     }
+  }
+
+  void _handleStrengthContextChanged() {
+    if (_passwordPolicy == null) return;
+    setState(() {
+      _strengthResult = evaluatePasswordStrength(
+        password: _passwordCtrl.text,
+        email: _emailCtrl.text.trim(),
+        name: _nameCtrl.text.trim(),
+        minLength: _minimumPasswordLength,
+      );
+    });
+  }
+
+  void _handlePasswordChanged() {
+    if (_passwordPolicy == null) return;
+    final password = _passwordCtrl.text;
+    setState(() {
+      _strengthResult = evaluatePasswordStrength(
+        password: password,
+        email: _emailCtrl.text.trim(),
+        name: _nameCtrl.text.trim(),
+        minLength: _minimumPasswordLength,
+      );
+      if (_lastCheckedPassword != password) {
+        _clearPwnedState();
+      }
+    });
+  }
+
+  void _handlePasswordFocusChanged() {
+    if (!_passwordFocusNode.hasFocus) {
+      _checkPwnedPasswordIfNeeded();
+    }
+  }
+
+  void _clearPwnedState() {
+    _isCheckingPwnedPassword = false;
+    _lastCheckedPassword = null;
+    _pwnedWarning = null;
+    _pwnedResult = null;
+  }
+
+  Future<void> _checkPwnedPasswordIfNeeded() async {
+    if (!_checksPwnedPasswords || _isCheckingPwnedPassword) return;
+
+    final password = _passwordCtrl.text;
+    if (password.isEmpty || password.length < _minimumPasswordLength) {
+      if (_lastCheckedPassword != null ||
+          _pwnedResult != null ||
+          _pwnedWarning != null ||
+          _isCheckingPwnedPassword) {
+        setState(_clearPwnedState);
+      }
+      return;
+    }
+    if (_lastCheckedPassword == password) return;
+
+    setState(() {
+      _isCheckingPwnedPassword = true;
+      _pwnedWarning = null;
+    });
+
+    try {
+      final checker =
+          _passwordPolicy?.breachChecker ?? checkPasswordAgainstPwnedPasswords;
+      final result = await checker(password);
+      if (!mounted || _passwordCtrl.text != password) return;
+      setState(() {
+        _lastCheckedPassword = password;
+        _pwnedResult = result;
+        _pwnedWarning = null;
+        _isCheckingPwnedPassword = false;
+      });
+    } catch (_) {
+      if (!mounted || _passwordCtrl.text != password) return;
+      setState(() {
+        _lastCheckedPassword = password;
+        _pwnedResult = null;
+        _pwnedWarning =
+            "Couldn't verify breach exposure right now. You can still continue.";
+        _isCheckingPwnedPassword = false;
+      });
+    }
+  }
+
+  void _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    await _checkPwnedPasswordIfNeeded();
+    if (!mounted) return;
+
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (_blocksPwnedPasswords && _pwnedResult?.isPwned == true) {
+      return;
+    }
+
+    widget.onSubmit(
+      _emailCtrl.text.trim(),
+      _passwordCtrl.text,
+      _nameCtrl.text.trim(),
+    );
+  }
+
+  String? _passwordValidator(String? value) {
+    if (value == null || value.isEmpty) return 'Password is required';
+    if (value.length < _minimumPasswordLength) {
+      return 'Minimum $_minimumPasswordLength characters';
+    }
+    if (_blocksPwnedPasswords &&
+        _pwnedResult?.isPwned == true &&
+        _lastCheckedPassword == value) {
+      return 'This password has appeared in data breaches';
+    }
+    return null;
+  }
+
+  bool get _showsPasswordFeedback {
+    if (_passwordCtrl.text.isEmpty) return false;
+    return _showsStrengthIndicator ||
+        _checksPwnedPasswords ||
+        _pwnedWarning != null ||
+        _pwnedResult != null;
   }
 
   @override
@@ -258,6 +429,7 @@ class _AuthFormSignUpState extends State<AuthFormSignUp> {
             const SizedBox(height: 16),
             AuthFlowTextField(
               controller: _passwordCtrl,
+              focusNode: _passwordFocusNode,
               label: 'Password',
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.next,
@@ -273,12 +445,19 @@ class _AuthFormSignUpState extends State<AuthFormSignUp> {
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
               ),
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Password is required';
-                if (v.length < 8) return 'Minimum 8 characters';
-                return null;
-              },
+              validator: _passwordValidator,
             ),
+            if (_showsPasswordFeedback) ...[
+              const SizedBox(height: 12),
+              _PasswordFeedbackPanel(
+                strengthResult: _strengthResult,
+                showStrengthIndicator: _showsStrengthIndicator,
+                isCheckingPwnedPassword: _isCheckingPwnedPassword,
+                pwnedResult: _pwnedResult,
+                pwnedWarning: _pwnedWarning,
+                theme: afTheme,
+              ),
+            ],
             const SizedBox(height: 16),
             AuthFlowTextField(
               controller: _confirmCtrl,
@@ -439,6 +618,218 @@ class _AuthFormForgotPasswordState extends State<AuthFormForgotPassword> {
         ),
       ),
     );
+  }
+}
+
+class _PasswordFeedbackPanel extends StatelessWidget {
+  const _PasswordFeedbackPanel({
+    required this.strengthResult,
+    required this.showStrengthIndicator,
+    required this.isCheckingPwnedPassword,
+    required this.pwnedResult,
+    required this.pwnedWarning,
+    this.theme,
+  });
+
+  final PasswordStrengthResult strengthResult;
+  final bool showStrengthIndicator;
+  final bool isCheckingPwnedPassword;
+  final PasswordBreachCheckResult? pwnedResult;
+  final String? pwnedWarning;
+  final AuthFlowTheme? theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final td = Theme.of(context);
+    final textColor = td.colorScheme.onSurface.withOpacity(0.7);
+    final strengthColor = _strengthColor(td);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: td.colorScheme.surfaceContainerHighest.withOpacity(0.35),
+        borderRadius:
+            theme?.effectiveInputBorderRadius ?? BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showStrengthIndicator) ...[
+              Row(
+                children: [
+                  Text(
+                    'Strength',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    strengthResult.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: strengthColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  minHeight: 6,
+                  value: strengthResult.progress,
+                  backgroundColor: td.colorScheme.outline.withOpacity(0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(strengthColor),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                strengthResult.helperText,
+                style: TextStyle(fontSize: 12, color: textColor),
+              ),
+            ],
+            if (isCheckingPwnedPassword ||
+                pwnedResult != null ||
+                pwnedWarning != null) ...[
+              if (showStrengthIndicator) const SizedBox(height: 12),
+              _PasswordFeedbackStatus(
+                isCheckingPwnedPassword: isCheckingPwnedPassword,
+                pwnedResult: pwnedResult,
+                pwnedWarning: pwnedWarning,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _strengthColor(ThemeData td) {
+    return switch (strengthResult.level) {
+      PasswordStrength.weak => td.colorScheme.error,
+      PasswordStrength.fair => Colors.orange.shade700,
+      PasswordStrength.good => td.colorScheme.primary,
+      PasswordStrength.strong => Colors.green.shade700,
+    };
+  }
+}
+
+class _PasswordFeedbackStatus extends StatelessWidget {
+  const _PasswordFeedbackStatus({
+    required this.isCheckingPwnedPassword,
+    required this.pwnedResult,
+    required this.pwnedWarning,
+  });
+
+  final bool isCheckingPwnedPassword;
+  final PasswordBreachCheckResult? pwnedResult;
+  final String? pwnedWarning;
+
+  @override
+  Widget build(BuildContext context) {
+    final td = Theme.of(context);
+
+    if (isCheckingPwnedPassword) {
+      return Row(
+        children: [
+          const SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Checking breach exposure...',
+            style: TextStyle(
+              fontSize: 12,
+              color: td.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (pwnedResult?.isPwned == true) {
+      final exposureCount = pwnedResult!.exposureCount;
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            size: 16,
+            color: td.colorScheme.error,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Found in breach data ${_formatExposureCount(exposureCount)}. Choose a different password.',
+              style: TextStyle(
+                fontSize: 12,
+                color: td.colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (pwnedWarning != null) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            size: 16,
+            color: Colors.orange.shade700,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              pwnedWarning!,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange.shade700,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (pwnedResult != null) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.verified_outlined,
+            size: 16,
+            color: Colors.green.shade700,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'No match found in the Pwned Passwords dataset.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.green.shade700,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  String _formatExposureCount(int count) {
+    if (count == 1) return '1 time';
+    return '$count times';
   }
 }
 

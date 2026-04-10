@@ -18,6 +18,8 @@ library flutter_auth_flow;
 export 'src/auth_flow_widget.dart' show AuthFlow;
 export 'src/auth_flow_theme.dart' show AuthFlowTheme;
 export 'src/auth_mode.dart' show AuthMode, AuthFlowType;
+export 'src/password_policy.dart'
+    show PasswordPolicy, PasswordBreachChecker, PasswordBreachCheckResult;
 export 'src/demo_auth_service.dart'
     show
         DemoAuthService,

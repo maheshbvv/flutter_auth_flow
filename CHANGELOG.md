@@ -1,3 +1,10 @@
+## 0.0.7
+
+* Added opt-in `PasswordPolicy` support for the Sign Up flow
+* Added a built-in password strength indicator with local password quality scoring
+* Added optional "**Have I Been Pwned**" password checks with developer control over whether exposed passwords are blocked
+* Updated the auth form layout to scroll when extra password guidance is shown
+
 ## 0.0.6
 
 * Added `themeMode` property to `AuthFlowTheme` for automatic dark/light mode detection based on system settings

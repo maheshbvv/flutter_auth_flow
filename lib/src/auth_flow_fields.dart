@@ -14,6 +14,7 @@ class AuthFlowTextField extends StatelessWidget {
     this.validator,
     this.textInputAction,
     this.onFieldSubmitted,
+    this.focusNode,
     this.autofillHints,
     this.theme,
     this.themeData,
@@ -31,6 +32,7 @@ class AuthFlowTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onFieldSubmitted;
+  final FocusNode? focusNode;
   final Iterable<String>? autofillHints;
   final AuthFlowTheme? theme;
   final ThemeData? themeData;
@@ -41,7 +43,7 @@ class AuthFlowTextField extends StatelessWidget {
     final afTheme = theme;
 
     final effectiveFill = afTheme?.inputFillColor ??
-        td.colorScheme.surfaceContainerHighest.withOpacity(0.4);
+        td.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4);
 
     final baseDecoration = InputDecoration(
       labelText: label,
@@ -50,35 +52,35 @@ class AuthFlowTextField extends StatelessWidget {
       fillColor: effectiveFill,
       suffixIcon: obscureToggle,
       border: OutlineInputBorder(
-        borderRadius: afTheme?.effectiveInputBorderRadius ??
-            BorderRadius.circular(12),
+        borderRadius:
+            afTheme?.effectiveInputBorderRadius ?? BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: afTheme?.effectiveInputBorderRadius ??
-            BorderRadius.circular(12),
+        borderRadius:
+            afTheme?.effectiveInputBorderRadius ?? BorderRadius.circular(12),
         borderSide: BorderSide(
-          color: td.colorScheme.outline.withOpacity(0.2),
+          color: td.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: afTheme?.effectiveInputBorderRadius ??
-            BorderRadius.circular(12),
+        borderRadius:
+            afTheme?.effectiveInputBorderRadius ?? BorderRadius.circular(12),
         borderSide: BorderSide(
           color: afTheme?.primaryColor ?? td.colorScheme.primary,
           width: 1.5,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: afTheme?.effectiveInputBorderRadius ??
-            BorderRadius.circular(12),
+        borderRadius:
+            afTheme?.effectiveInputBorderRadius ?? BorderRadius.circular(12),
         borderSide: BorderSide(
           color: afTheme?.errorColor ?? td.colorScheme.error,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: afTheme?.effectiveInputBorderRadius ??
-            BorderRadius.circular(12),
+        borderRadius:
+            afTheme?.effectiveInputBorderRadius ?? BorderRadius.circular(12),
         borderSide: BorderSide(
           color: afTheme?.errorColor ?? td.colorScheme.error,
           width: 1.5,
@@ -88,6 +90,7 @@ class AuthFlowTextField extends StatelessWidget {
 
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       obscureText: obscureText,
       textInputAction: textInputAction,

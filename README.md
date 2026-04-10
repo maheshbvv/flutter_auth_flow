@@ -12,8 +12,29 @@ Add the widget, and it just works. Use only Sign In, only Sign Up, only Forgot P
 - **Custom authentication** — Plug in your own API callbacks easily
 - Works with any state management (BLoC, Riverpod, Provider)
 - Built-in form validation & loading states
+- Optional sign-up password strength meter and HIBP breach check
 - Smooth animated transitions
 - Fully customizable UI
+
+---
+
+## Screenshots
+
+### All Modes
+
+| Sign In | Sign Up |
+|--------|---------|
+| ![All modes sign in](screenshots/all_signin_view.png) | ![All modes sign up](screenshots/all_signup_view.png) |
+
+| Forgot Password | Password Strength |
+|----------------|-------------------|
+| ![All modes reset password](screenshots/all_reset_password_view.png) | ![Password strength check](screenshots/password_strength_check_view.png) |
+
+### Single-Mode Presets
+
+| Sign In Only | Sign Up Only | Forgot Password Only |
+|-------------|--------------|----------------------|
+| ![Sign in only](screenshots/only_signin_view.png) | ![Sign up only](screenshots/only_signup_view.png) | ![Forgot password only](screenshots/only_reset_password_view.png) |
 
 ---
 
@@ -89,6 +110,22 @@ AuthFlow(
 )
 ```
 
+### With Password Strength + Breach Check
+
+```dart
+AuthFlow(
+  authFlowType: AuthFlowType.signInAndSignUp(),
+  onSignIn: (email, password) async { ... },
+  onSignUp: (email, password, name) async { ... },
+  passwordPolicy: const PasswordPolicy(
+    showStrengthIndicator: true,
+    minLength: 10,
+    enablePwnedCheck: true,
+    blockPwnedPasswords: true,
+  ),
+)
+```
+
 ---
 
 ## AuthFlowType Presets
@@ -135,6 +172,7 @@ AuthFlow(
 | `errorMessage` | `String?` | — | External error message override |
 | `initialMode` | `AuthMode?` | First enabled mode | Starting mode |
 | `theme` | `AuthFlowTheme?` | — | Visual customization |
+| `passwordPolicy` | `PasswordPolicy?` | — | Optional sign-up password meter and breach policy |
 | `headerBuilder` | `Widget Function(BuildContext, AuthMode)?` | — | Custom header |
 | `footerBuilder` | `Widget Function(BuildContext, AuthMode)?` | — | Custom footer |
 | `errorBuilder` | `Widget Function(BuildContext, String)?` | — | Custom error display |
@@ -167,6 +205,19 @@ enum AuthMode {
   forgotPassword,
 }
 ```
+
+### PasswordPolicy
+
+```dart
+const PasswordPolicy(
+  showStrengthIndicator: true,
+  minLength: 8,
+  enablePwnedCheck: false,
+  blockPwnedPasswords: true,
+)
+```
+
+`enablePwnedCheck` uses the free Have I Been Pwned Pwned Passwords range API. If the lookup fails, sign-up is still allowed and the widget shows a warning instead of blocking the user.
 
 ### AuthFlowTheme
 
