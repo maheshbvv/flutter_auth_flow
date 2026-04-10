@@ -1,3 +1,7 @@
+## 0.0.8
+
+* Added package screenshots metadata to `pubspec.yaml` so pub.dev can display the screenshot gallery on the package page.
+
 ## 0.0.7
 
 * Added opt-in `PasswordPolicy` support for the Sign Up flow

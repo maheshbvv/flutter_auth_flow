@@ -2,7 +2,7 @@ name: flutter_auth_flow
 description: >
   A single, fully customizable Flutter widget that handles Sign In, Sign Up,
   and Forgot Password — no routing, no multiple pages, just drop it in.
-version: 0.0.7
+version: 0.0.8
 homepage: https://github.com/maheshbvv/flutter_auth_flow
 repository: https://github.com/maheshbvv/flutter_auth_flow
 
@@ -22,5 +22,21 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+
+screenshots:
+  - description: Sign in screen in the all-modes auth flow.
+    path: screenshots/all_signin_view.png
+  - description: Sign up screen in the all-modes auth flow.
+    path: screenshots/all_signup_view.png
+  - description: Forgot password screen in the all-modes auth flow.
+    path: screenshots/all_reset_password_view.png
+  - description: Password strength and breach-check UI during sign up.
+    path: screenshots/password_strength_check_view.png
+  - description: Sign in only preset.
+    path: screenshots/only_signin_view.png
+  - description: Sign up only preset.
+    path: screenshots/only_signup_view.png
+  - description: Forgot password only preset.
+    path: screenshots/only_reset_password_view.png
 
 flutter:
